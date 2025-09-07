@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 
-export default function AmalJẹunLanding() {
+export default function AmalaJẹunLanding() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
@@ -34,7 +34,7 @@ export default function AmalJẹunLanding() {
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <MapPin className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-foreground">AmalJẹun</span>
+            <span className="text-xl font-bold text-foreground">AmalaJẹun</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -103,7 +103,7 @@ export default function AmalJẹunLanding() {
           <Card className="w-full max-w-md bg-background border-border/50">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-foreground">Welcome to AmalJẹun</h2>
+                <h2 className="text-2xl font-bold text-foreground">Welcome to AmalaJẹun</h2>
                 <button
                   onClick={() => setIsAuthModalOpen(false)}
                   className="text-muted-foreground hover:text-foreground transition-colors"
@@ -165,7 +165,7 @@ export default function AmalJẹunLanding() {
               Never struggle to find the perfect bowl of <span className="text-primary">Amala</span> again.
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground text-balance mb-8 max-w-3xl mx-auto leading-relaxed">
-              AmalJẹun is a crowdsourced global map where the community discovers, verifies, and celebrates Amala spots
+              AmalaJẹun is a crowdsourced global map where the community discovers, verifies, and celebrates Amala spots
               worldwide.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -221,7 +221,7 @@ export default function AmalJẹunLanding() {
                   The Solution
                 </Badge>
                 <h2 className="text-3xl md:text-4xl font-bold mb-6 text-balance">
-                  We built AmalJẹun: part map, part <span className="text-secondary">cultural archive</span>.
+                  We built AmalaJẹun: part map, part <span className="text-secondary">cultural archive</span>.
                 </h2>
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                   It combines AI discovery, community verification, and storytelling to ensure no one misses out on true
@@ -421,7 +421,7 @@ export default function AmalJẹunLanding() {
                   <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                     <MapPin className="w-4 h-4 text-primary-foreground" />
                   </div>
-                  <span className="text-xl font-bold">AmalJẹun</span>
+                  <span className="text-xl font-bold">AmalaJẹun</span>
                 </div>
                 <p className="text-muted-foreground mb-6 max-w-md">
                   Preserving and celebrating Yoruba culture through community-driven discovery of authentic Amala spots
@@ -478,7 +478,7 @@ export default function AmalJẹunLanding() {
 
             <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border/50">
               <p className="text-muted-foreground text-sm mb-4 md:mb-0">
-                © 2024 AmalJẹun. Built with love for the culture.
+                © 2024 AmalaJẹun. Built with love for the culture.
               </p>
               <div className="flex items-center gap-4">
                 <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
