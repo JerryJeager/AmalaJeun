@@ -5,6 +5,8 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
+import "leaflet/dist/leaflet.css";
+
 
 export const metadata: Metadata = {
   title: "AmalaJẹun - Discover Authentic Amala Spots Worldwide",
