@@ -7,10 +7,16 @@ import { Suspense } from "react"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "AmalAtlas - Discover Authentic Amala Spots Worldwide",
+  title: "AmalaJẹun - Discover Authentic Amala Spots Worldwide",
   description:
     "A crowdsourced global map where the community discovers, verifies, and celebrates Amala spots worldwide. Never struggle to find the perfect bowl of Amala again.",
-  generator: "v0.app",
+  icons: {
+    icon: "https://amalajeun.vercel.app/logo.svg",
+    shortcut:
+      "https://amalajeun.vercel.app/logo.svg",
+    apple:
+      "https://amalajeun.vercel.app/logo.svg",
+  },
 }
 
 export default function RootLayout({
