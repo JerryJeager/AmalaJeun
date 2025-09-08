@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, Plus } from "lucide-react";
 const Hero = () => {
   return (
-    <section className="relative py-20 lg:py-32 map-pattern overflow-hidden">
+    <section className="relative py-20 lg:py-32 map-pattern overflow-hidden bg-[url('/hero.png')]  bg-cover bg-no-repeat bg-center">
       <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-background/70 to-background/90" />
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
