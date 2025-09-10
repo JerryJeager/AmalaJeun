@@ -22,7 +22,7 @@ const Story = () => {
                 than food, it's <span className="text-primary">culture</span>.
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Too many people miss out on authentic Yoruba heritage because
+                Too many people miss out on authentic Nigerian heritage because
                 they can't find the real spots. Generic food apps don't
                 understand the cultural significance and community knowledge
                 needed.
@@ -53,7 +53,7 @@ const Story = () => {
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                 It combines AI discovery, community verification, and
-                storytelling to ensure no one misses out on true Yoruba
+                storytelling to ensure no one misses out on true Nigerian
                 heritage.
               </p>
               <div className="flex items-center gap-4">

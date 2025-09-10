@@ -26,7 +26,7 @@ const Community = () => {
             <h3 className="text-2xl font-bold mb-6">Be part of the movement</h3>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join thousands of culture keepers, food lovers, and community
-              builders preserving Yoruba heritage one Amala spot at a time.
+              builders preserving Nigerian heritage one Amala spot at a time.
             </p>
             <Button
               size="lg"

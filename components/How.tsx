@@ -10,7 +10,7 @@ const How = () => {
             <span className="text-primary">Amala</span>
           </h2>
           <p className="text-xl text-muted-foreground text-balance">
-            Four simple steps to connect with Yoruba culture worldwide
+            Four simple steps to connect with Nigerian culture worldwide
           </p>
         </div>
 

@@ -4,285 +4,41 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Map as LeafletMap } from "leaflet";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const MapContainer = dynamic(
   async () => (await import("react-leaflet")).MapContainer,
   { ssr: false }
 );
-const TileLayer = dynamic(async () => (await import("react-leaflet")).TileLayer, {
-  ssr: false,
-});
+const TileLayer = dynamic(
+  async () => (await import("react-leaflet")).TileLayer,
+  {
+    ssr: false,
+  }
+);
 const Popup = dynamic(async () => (await import("react-leaflet")).Popup, {
   ssr: false,
 });
 const Marker = dynamic(async () => (await import("react-leaflet")).Marker, {
   ssr: false,
 });
-import { useMap } from "react-leaflet";
+import { useMap, useMapEvents } from "react-leaflet";
 const MarkerClusterGroup: any = dynamic(
   async () => (await import("react-leaflet-cluster")).default,
   { ssr: false }
 );
 
 import L from "leaflet";
-
-// --- Types
-
-type PriceBand = "$" | "$$" | "$$$";
-
-type SpotStatus = "verified" | "pending" | "candidate";
-
-type AmalaSpot = {
-  id: string;
-  name: string;
-  address: string;
-  lat: number;
-  lng: number;
-  price: PriceBand;
-  hours: string; // e.g., "10:00–22:00"
-  openNow: boolean;
-  rating: number; // 0–5
-  status: SpotStatus;
-  neighborhood?: string;
-};
-
-// --- Dummy Lagos data (hand‑placed clusters around popular areas)
-const DUMMY_SPOTS: AmalaSpot[] = [
-  {
-    id: "1",
-    name: "Iya Meta Amala & Gbegiri",
-    address: "Akerele Rd, Surulere, Lagos",
-    lat: 6.5005,
-    lng: 3.3545,
-    price: "$",
-    hours: "09:00–21:00",
-    openNow: true,
-    rating: 4.6,
-    status: "verified",
-    neighborhood: "Surulere",
-  },
-  {
-    id: "2",
-    name: "Mama Sade Buka",
-    address: "Ojuelegba, Surulere",
-    lat: 6.507,
-    lng: 3.361,
-    price: "$",
-    hours: "10:00–20:00",
-    openNow: false,
-    rating: 4.2,
-    status: "pending",
-    neighborhood: "Surulere",
-  },
-  {
-    id: "3",
-    name: "Amala Heaven Yaba",
-    address: "Commercial Ave, Yaba",
-    lat: 6.5155,
-    lng: 3.378,
-    price: "$$",
-    hours: "11:00–22:00",
-    openNow: true,
-    rating: 4.8,
-    status: "verified",
-    neighborhood: "Yaba",
-  },
-  {
-    id: "4",
-    name: "Taste of Oyo",
-    address: "Sabo, Yaba",
-    lat: 6.5185,
-    lng: 3.389,
-    price: "$$",
-    hours: "09:30–21:00",
-    openNow: true,
-    rating: 4.4,
-    status: "candidate",
-    neighborhood: "Yaba",
-  },
-  {
-    id: "5",
-    name: "Buka Republic Lekki",
-    address: "Admiralty Way, Lekki Phase 1",
-    lat: 6.448,
-    lng: 3.469,
-    price: "$$$",
-    hours: "12:00–23:00",
-    openNow: true,
-    rating: 4.7,
-    status: "verified",
-    neighborhood: "Lekki",
-  },
-  {
-    id: "6",
-    name: "Ìbílẹ̀ Kitchen",
-    address: "Lekki Phase 1",
-    lat: 6.4415,
-    lng: 3.4645,
-    price: "$$",
-    hours: "10:00–22:00",
-    openNow: false,
-    rating: 4.1,
-    status: "pending",
-    neighborhood: "Lekki",
-  },
-  {
-    id: "7",
-    name: "Amala Corner Ikeja",
-    address: "Awolowo Way, Ikeja",
-    lat: 6.603,
-    lng: 3.349,
-    price: "$",
-    hours: "08:00–19:00",
-    openNow: true,
-    rating: 4.0,
-    status: "verified",
-    neighborhood: "Ikeja",
-  },
-  {
-    id: "8",
-    name: "Oyo Heritage Buka",
-    address: "Computer Village, Ikeja",
-    lat: 6.5965,
-    lng: 3.3535,
-    price: "$",
-    hours: "09:00–20:00",
-    openNow: false,
-    rating: 3.9,
-    status: "candidate",
-    neighborhood: "Ikeja",
-  },
-  {
-    id: "9",
-    name: "Gbegiri House",
-    address: "Victoria Island",
-    lat: 6.428,
-    lng: 3.42,
-    price: "$$$",
-    hours: "12:00–22:30",
-    openNow: true,
-    rating: 4.9,
-    status: "verified",
-    neighborhood: "VI",
-  },
-  {
-    id: "10",
-    name: "Amala & More",
-    address: "Victoria Island",
-    lat: 6.4305,
-    lng: 3.4145,
-    price: "$$",
-    hours: "11:00–21:30",
-    openNow: true,
-    rating: 4.3,
-    status: "pending",
-    neighborhood: "VI",
-  },
-  {
-    id: "11",
-    name: "Iya Bose Joint",
-    address: "Iyana Ipaja",
-    lat: 6.611,
-    lng: 3.289,
-    price: "$",
-    hours: "08:30–18:00",
-    openNow: false,
-    rating: 3.8,
-    status: "candidate",
-    neighborhood: "Iyana Ipaja",
-  },
-  {
-    id: "12",
-    name: "Bowl of Oyo",
-    address: "Maryland, Ikeja",
-    lat: 6.572,
-    lng: 3.367,
-    price: "$$",
-    hours: "10:00–20:30",
-    openNow: true,
-    rating: 4.5,
-    status: "verified",
-    neighborhood: "Maryland",
-  },
-  {
-    id: "13",
-    name: "Amala Express Yaba",
-    address: "Tejuosho, Yaba",
-    lat: 6.5125,
-    lng: 3.376,
-    price: "$",
-    hours: "09:00–19:30",
-    openNow: true,
-    rating: 4.2,
-    status: "pending",
-    neighborhood: "Yaba",
-  },
-  {
-    id: "14",
-    name: "Ewedu & Co",
-    address: "Ogudu",
-    lat: 6.569,
-    lng: 3.392,
-    price: "$$",
-    hours: "10:00–21:00",
-    openNow: true,
-    rating: 4.1,
-    status: "verified",
-    neighborhood: "Ogudu",
-  },
-  {
-    id: "15",
-    name: "Buka Lekki Right",
-    address: "Lekki",
-    lat: 6.4425,
-    lng: 3.4775,
-    price: "$$$",
-    hours: "12:00–23:00",
-    openNow: false,
-    rating: 4.6,
-    status: "candidate",
-    neighborhood: "Lekki",
-  },
-  {
-    id: "16",
-    name: "Mama Funke Amala",
-    address: "Oshodi",
-    lat: 6.555,
-    lng: 3.339,
-    price: "$",
-    hours: "08:00–19:00",
-    openNow: true,
-    rating: 3.7,
-    status: "pending",
-    neighborhood: "Oshodi",
-  },
-  {
-    id: "17",
-    name: "Gidi Amala Spot",
-    address: "Obalende, Ikoyi",
-    lat: 6.4505,
-    lng: 3.4095,
-    price: "$$",
-    hours: "10:30–21:30",
-    openNow: true,
-    rating: 4.4,
-    status: "verified",
-    neighborhood: "Ikoyi",
-  },
-  {
-    id: "18",
-    name: "Amala Palace Surulere",
-    address: "Adelabu St, Surulere",
-    lat: 6.4975,
-    lng: 3.354,
-    price: "$$",
-    hours: "09:30–21:30",
-    openNow: true,
-    rating: 4.0,
-    status: "candidate",
-    neighborhood: "Surulere",
-  },
-];
+import { DUMMY_SPOTS } from "@/data/data";
+import { PriceBand, SpotStatus } from "@/types/type";
+import AmalaChat from "../chat/AmalaChat";
 
 // --- Map helpers
 
@@ -345,6 +101,10 @@ export default function AmalaMap() {
   const [onlyVerified, setOnlyVerified] = useState(false);
   const [openNow, setOpenNow] = useState(false);
   const [price, setPrice] = useState<PriceBand | "all">("all");
+  const [addingMode, setAddingMode] = useState(false);
+  const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
+  const [candidate, setCandidate] = useState<L.LatLng | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return DUMMY_SPOTS.filter((s) => {
@@ -363,10 +123,19 @@ export default function AmalaMap() {
 
   const center: [number, number] = [6.5244, 3.3792]; // Lagos
 
+  function ClickHandler({ setCandidate }: { setCandidate: any }) {
+    useMapEvents({
+      click(e) {
+        setCandidate(e.latlng);
+      },
+    });
+    return null;
+  }
+
   return (
     <div className="relative h-[calc(100vh-0px)] w-full">
       {/* Floating top bar */}
-      <div className="pointer-events-auto absolute left-1/2 top-4 z-[1000] w-[92%] max-w-3xl -translate-x-1/2">
+      <div className="pointer-events-auto absolute left-1/2 top-4 z-[3] w-[92%] max-w-3xl -translate-x-1/2">
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-2 shadow-lg">
           <input
             value={query}
@@ -374,16 +143,6 @@ export default function AmalaMap() {
             placeholder="Search Amala spots, areas…"
             className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none"
           />
-          {/* <select
-            value={price}
-            onChange={(e) => setPrice(e.target.value as any)}
-            className="rounded-xl border border-gray-200 px-3 py-2 text-sm"
-          >
-            <option value="all">Price: All</option>
-            <option value="$">$</option>
-            <option value="$$">$$</option>
-            <option value="$$$">$$$</option>
-          </select> */}
           <label className="flex items-center gap-2 rounded-xl border border-gray-200 px-2 py-1 text-xs">
             <input
               type="checkbox"
@@ -402,31 +161,93 @@ export default function AmalaMap() {
           </label>
           <button
             className="rounded-xl bg-black px-3 py-1 text-xs font-semibold text-white hover:bg-gray-900"
-            onClick={() => alert("Open agent chat (to implement)")}
+            onClick={() => {
+              setAddingMode(true);
+              alert("Click on the map to select an Amala spot location.");
+            }}
           >
             + Add via AI
           </button>
         </div>
       </div>
-
       {/* Legend */}
-      <div className="pointer-events-none absolute left-4 top-4 z-[1000] hidden w-48 rounded-2xl bg-white/90 p-3 text-xs shadow-md md:block">
+      <div className="pointer-events-none absolute left-4 top-4 z-[1] hidden w-48 rounded-2xl bg-white/90 p-3 text-xs shadow-md md:block">
         <div className="mb-1 font-semibold">Legend</div>
-        <div className="flex items-center gap-2"><span className="inline-block h-3 w-3 rounded-full" style={{background:'#16a34a'}} /> Verified</div>
-        <div className="flex items-center gap-2"><span className="inline-block h-3 w-3 rounded-full" style={{background:'#eab308'}} /> Pending</div>
-        <div className="flex items-center gap-2"><span className="inline-block h-3 w-3 rounded-full" style={{background:'#6b7280'}} /> Candidate</div>
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block h-3 w-3 rounded-full"
+            style={{ background: "#16a34a" }}
+          />{" "}
+          Verified
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block h-3 w-3 rounded-full"
+            style={{ background: "#eab308" }}
+          />{" "}
+          Pending
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block h-3 w-3 rounded-full"
+            style={{ background: "#6b7280" }}
+          />{" "}
+          Candidate
+        </div>
       </div>
-
       <MapContainer
         center={center}
         zoom={11}
         scrollWheelZoom
-        className="h-full w-full"
+        className="h-full w-full leaflet-container"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        {addingMode && <ClickHandler setCandidate={setCandidate} />}
+
+        {candidate && (
+          <Marker
+            position={candidate}
+            draggable={true}
+            icon={L.divIcon({
+              className: "amala-marker-temp",
+              html: `<div style="color:red;font-weight:bold;">📍</div>`,
+            })}
+            eventHandlers={{
+              dragend: (e) => setCandidate(e.target.getLatLng()),
+            }}
+          >
+            <Popup>
+              <div>
+                <p>Use this location?</p>
+                <div className="flex gap-2">
+                  <button
+                    className="text-red-500"
+                    onClick={() => setCandidate(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button onClick={() => setIsChatOpen(true)}>Confirm</button>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+
+        {/* {pickedPoint && (
+          <Marker
+            position={pickedPoint}
+            icon={L.divIcon({
+              className: "amala-marker-temp",
+              html: `<div style="color:red;font-weight:bold;">📍</div>`,
+            })}
+          >
+            <Popup>New Amala Spot</Popup>
+          </Marker>
+        )} */}
 
         <MarkerClusterGroup
           chunkedLoading
@@ -443,7 +264,9 @@ export default function AmalaMap() {
               <Popup>
                 <div className="min-w-[220px]">
                   <div className="mb-1 text-sm font-bold">{spot.name}</div>
-                  <div className="mb-2 text-xs text-gray-600">{spot.address}</div>
+                  <div className="mb-2 text-xs text-gray-600">
+                    {spot.address}
+                  </div>
                   <div className="mb-2 flex items-center gap-2 text-xs">
                     <span
                       className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
@@ -462,7 +285,8 @@ export default function AmalaMap() {
                     </span>
                   </div>
                   <div className="flex items-center text-xs">
-                    Rating: {spot.rating.toFixed(1)} <Stars rating={spot.rating} />
+                    Rating: {spot.rating.toFixed(1)}{" "}
+                    <Stars rating={spot.rating} />
                   </div>
                   <div className="mt-3 flex gap-2">
                     <button
@@ -488,6 +312,33 @@ export default function AmalaMap() {
         {/* @ts-ignore */}
         <LocateButton />
       </MapContainer>
+      {/* Chat Modal */}{" "}
+      <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <DialogContent
+          className="sm:max-w-[500px] h-[600px] flex flex-col p-4"
+        //   style={{ zIndex: 9999, position: "relative" }}
+        >
+          <DialogHeader>
+            <DialogTitle>Describe the Amala Spot</DialogTitle>
+            <DialogDescription>
+              Provide details about the Amala spot to help us verify and add it
+              to the map.
+            </DialogDescription>
+          </DialogHeader>
+          {candidate && (
+            <div className="mt-4">
+              <p className="mb-2 text-sm">
+                Location: {candidate.lat.toFixed(5)}, {candidate.lng.toFixed(5)}
+              </p>
+              {/* Chat component goes here */}
+              <div className="h-96">
+                {/* @ts-ignore */}
+                <AmalaChat />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

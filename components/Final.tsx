@@ -11,7 +11,7 @@ const Final = () => {
           </h2>
           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto text-balance">
             Every spot you add, every review you share, every vote you cast
-            helps preserve and celebrate Yoruba culture for generations to come.
+            helps preserve and celebrate Nigerian culture for generations to come.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button

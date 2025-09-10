@@ -15,7 +15,7 @@ const Footer = () => {
                 <span className="text-xl font-bold">AmalaJẹun</span>
               </div>
               <p className="text-muted-foreground mb-6 max-w-md">
-                Preserving and celebrating Yoruba culture through
+                Preserving and celebrating Nigerian culture through
                 community-driven discovery of authentic Amala spots worldwide.
               </p>
               <Badge

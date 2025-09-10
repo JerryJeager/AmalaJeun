@@ -32,7 +32,7 @@ const GoogleAuth = ({
               </div>
 
               <p className="text-muted-foreground mb-8 text-center">
-                Join the community preserving Yoruba culture through authentic
+                Join the community preserving Nigerian culture through authentic
                 Amala discovery.
               </p>
 
