@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Plus } from "lucide-react";
+import Link from "next/link";
 const Hero = () => {
   return (
     <section className="relative py-20 lg:py-32 map-pattern overflow-hidden bg-[url('/hero.png')]  bg-cover bg-no-repeat bg-center">
@@ -22,21 +23,26 @@ const Hero = () => {
             discovers, verifies, and celebrates Amala spots worldwide.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg"
-            >
-              <MapPin className="w-5 h-5 mr-2" />
-              Explore the Map
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="px-8 py-6 text-lg border-primary/30 hover:bg-primary/10 bg-transparent"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Add a Spot
-            </Button>
+            <Link href="/map">
+              {" "}
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-lg cursor-pointer"
+              >
+                <MapPin className="w-5 h-5 mr-2" />
+                Explore the Map
+              </Button>
+            </Link>
+            <Link href="/map">
+              <Button
+                size="lg"
+                variant="outline"
+                className="px-8 py-6 text-lg border-primary/30 hover:bg-primary/10 bg-transparent"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Add a Spot
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

@@ -3,19 +3,19 @@ import { streamText, convertToModelMessages } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { z } from "zod";
 
-const google = createGoogleGenerativeAI({ apiKey: "AIzaSyAfnNPyGDXsLk7-saalhporly-1MkHRK-o", });
+const google = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_API_KEY });
 
 export async function POST(req: NextRequest) {
   const { messages, lat, lng } = await req.json();
 
   const result = streamText({
     model: google("models/gemini-1.5-flash"),
-    messages: convertToModelMessages(messages), // ✅ fix
+    messages: convertToModelMessages(messages),
     system: `
       You are AmalaJẹun Bot, an intake assistant for mapping Amala spots.
 
       Context:
-      - Whenever the user clicks on the map, you will automatically receive the latitude and longitude.
+      - The current location is lat=${lat}, lng=${lng}.the provided lat/lng.
       - Do not ask the user for coordinates. Always use the provided lat/lng.
       - Your job is to collect only:
         * Shop name
@@ -57,5 +57,4 @@ export async function POST(req: NextRequest) {
   });
 
   return result.toUIMessageStreamResponse();
-
 }

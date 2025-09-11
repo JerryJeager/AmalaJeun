@@ -1,5 +1,7 @@
+"use client"
 import { MapPin, Github, Twitter, Instagram } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ojuju } from "./Navbar";
 
 const Footer = () => {
   return (
@@ -12,7 +14,9 @@ const Footer = () => {
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                   <MapPin className="w-4 h-4 text-primary-foreground" />
                 </div>
-                <span className="text-xl font-bold">AmalaJẹun</span>
+                <span className={`${ojuju.className}  text-xl font-bold`}>
+                  AmalaJẹun
+                </span>
               </div>
               <p className="text-muted-foreground mb-6 max-w-md">
                 Preserving and celebrating Nigerian culture through

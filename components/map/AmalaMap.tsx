@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -39,6 +40,7 @@ import L from "leaflet";
 import { DUMMY_SPOTS } from "@/data/data";
 import { PriceBand, SpotStatus } from "@/types/type";
 import AmalaChat from "../chat/AmalaChat";
+import { Button } from "../ui/button";
 
 // --- Map helpers
 
@@ -105,6 +107,7 @@ export default function AmalaMap() {
   const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
   const [candidate, setCandidate] = useState<L.LatLng | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return DUMMY_SPOTS.filter((s) => {
@@ -163,7 +166,7 @@ export default function AmalaMap() {
             className="rounded-xl bg-black px-3 py-1 text-xs font-semibold text-white hover:bg-gray-900"
             onClick={() => {
               setAddingMode(true);
-              alert("Click on the map to select an Amala spot location.");
+              setIsInstructionsOpen(true);
             }}
           >
             + Add via AI
@@ -312,11 +315,11 @@ export default function AmalaMap() {
         {/* @ts-ignore */}
         <LocateButton />
       </MapContainer>
-      {/* Chat Modal */}{" "}
+      {/* Chat Modal */}
       <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
         <DialogContent
           className="sm:max-w-[500px] h-[600px] flex flex-col p-4"
-        //   style={{ zIndex: 9999, position: "relative" }}
+          //   style={{ zIndex: 9999, position: "relative" }}
         >
           <DialogHeader>
             <DialogTitle>Describe the Amala Spot</DialogTitle>
@@ -330,13 +333,49 @@ export default function AmalaMap() {
               <p className="mb-2 text-sm">
                 Location: {candidate.lat.toFixed(5)}, {candidate.lng.toFixed(5)}
               </p>
-              {/* Chat component goes here */}
               <div className="h-96">
                 {/* @ts-ignore */}
-                <AmalaChat />
+                <AmalaChat
+                  lat={candidate.lat.toFixed(5)}
+                  lng={candidate.lng.toFixed(5)}
+                />
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* instructions */}
+      <Dialog open={isInstructionsOpen} onOpenChange={setIsInstructionsOpen}>
+        <DialogTrigger asChild>
+          <Button variant="default">Add Amala Spot</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>How to Add an Amala Location</DialogTitle>
+            <DialogDescription>
+              Follow these steps to mark and confirm an Amala spot on the map.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 text-sm text-gray-700">
+            <p>1. Tap on the map to select a point. A pin will appear.</p>
+            <p>2. Drag the pin around until you are happy with the location.</p>
+            <p>3. Click on the pin to confirm your selection.</p>
+            <p>
+              4. Once confirmed, an AI chat will open where you can provide more
+              details about the spot (e.g. name, specialty, opening hours).
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => setIsInstructionsOpen(false)}
+              variant="default"
+            >
+              Got it
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

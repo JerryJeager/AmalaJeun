@@ -4,6 +4,15 @@ import { Button } from "@/components/ui/button";
 import { MapPin, Menu, X } from "lucide-react";
 import { useState } from "react";
 import GoogleAuth from "./home/GoogleAuth";
+import Link from "next/link";
+import { Ojuju } from "next/font/google";
+
+
+export const ojuju = Ojuju({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+});
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -13,12 +22,16 @@ const Navbar = () => {
     <>
       <nav className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-primary-foreground" />
+          <Link href="/">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-primary-foreground" />
+              </div>
+              <span className={`text-xl font-bold text-foreground ${ojuju.className}`}>
+                AmalaJẹun
+              </span>
             </div>
-            <span className="text-xl font-bold text-foreground">AmalaJẹun</span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">

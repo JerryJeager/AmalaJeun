@@ -5,19 +5,31 @@ import { DefaultChatTransport } from "ai";
 import { Send } from "lucide-react";
 import { useState } from "react";
 
-export default function AmalaChat() {
+export default function AmalaChat({ lat, lng }: { lat: string; lng: string }) {
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
+      body: { lat, lng },
     }),
   });
 
   const [input, setInput] = useState("");
+  const [showTyping, setShowTyping] = useState(false);
 
   return (
     <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl flex flex-col">
       {/* Messages */}
       <div className="h-72 overflow-y-auto border-b pb-3 mb-3 space-y-2">
+        {/* Static welcome message */}
+        {messages.length === 0 && (
+          <div className="flex justify-start">
+            <div className="px-3 py-2 rounded-lg max-w-[75%] bg-gray-100 text-gray-800 rounded-bl-none">
+              Welcome! Please tell me the name of this Amala spot so we can get
+              started.
+            </div>
+          </div>
+        )}
+
         {messages.map((m) => (
           <div
             key={m.id}
@@ -41,8 +53,10 @@ export default function AmalaChat() {
           </div>
         ))}
 
-        {status === "streaming" && (
-          <div className="text-sm text-gray-500">AmalaJẹun Bot is typing...</div>
+        {status === "submitted" && (
+          <div className="text-sm text-gray-500 italic">
+            AmalaJẹun Bot is typing...
+          </div>
         )}
       </div>
 
@@ -66,9 +80,9 @@ export default function AmalaChat() {
         <button
           type="submit"
           disabled={status !== "ready"}
-          className=" text-white hover:opacity-90 disabled:opacity-50 "
+          className="text-white hover:opacity-90 disabled:opacity-50"
         >
-        <Send color="#744B20" size={20} />
+          <Send color="#744B20" size={20} />
         </button>
       </form>
     </div>
