@@ -45,6 +45,7 @@
     "@vercel/analytics": "latest",
     "ai": "^5.0.39",
     "autoprefixer": "^10.4.20",
+    "axios": "^1.12.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
@@ -71,7 +72,8 @@
     "vaul": "^0.9.9",
     "vue": "latest",
     "vue-router": "latest",
-    "zod": "^4.1.5"
+    "zod": "^4.1.5",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.9",

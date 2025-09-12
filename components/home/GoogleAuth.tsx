@@ -1,9 +1,14 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { X } from "lucide-react";
+import { BASE_URL } from "@/data/data";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+// import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const GoogleAuth = ({
   isAuthModalOpen,
@@ -12,6 +17,22 @@ const GoogleAuth = ({
   isAuthModalOpen: boolean;
   setIsAuthModalOpen: Dispatch<SetStateAction<boolean>>;
 }) => {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+//   const toast = useToast()
+
+  const handleGoogleAuth = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL()}/api/v1/auth/google`);
+      if (res.status === 200) {
+        router.push(res.data.auth_url);
+      }
+    } catch (err) {
+    toast.error("Failed to authenticate with Google. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <>
       {isAuthModalOpen && (
@@ -39,9 +60,10 @@ const GoogleAuth = ({
               <Button
                 className="w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 py-6 text-lg font-medium"
                 onClick={() => {
-                  // Google auth functionality would go here
+                  handleGoogleAuth();
                   console.log("Google auth clicked");
                 }}
+                disabled={isLoading}
               >
                 <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                   <path
