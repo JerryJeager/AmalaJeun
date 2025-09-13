@@ -7,7 +7,6 @@ import { X } from "lucide-react";
 import { BASE_URL } from "@/data/data";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-// import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 
 const GoogleAuth = ({
@@ -19,7 +18,6 @@ const GoogleAuth = ({
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-//   const toast = useToast()
 
   const handleGoogleAuth = async () => {
     try {

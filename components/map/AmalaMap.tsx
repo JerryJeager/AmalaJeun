@@ -41,6 +41,9 @@ import { DUMMY_SPOTS } from "@/data/data";
 import { PriceBand, SpotStatus } from "@/types/type";
 import AmalaChat from "../chat/AmalaChat";
 import { Button } from "../ui/button";
+import GoogleAuth from "../home/GoogleAuth";
+import { getCookie } from "@/actions/handleCookies";
+import useUserStore from "@/store/useUserStore";
 
 // --- Map helpers
 
@@ -108,6 +111,9 @@ export default function AmalaMap() {
   const [candidate, setCandidate] = useState<L.LatLng | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user } = useUserStore();
+  const [accessToken, setAccessToken] = useState("");
 
   const filtered = useMemo(() => {
     return DUMMY_SPOTS.filter((s) => {
@@ -134,6 +140,26 @@ export default function AmalaMap() {
     });
     return null;
   }
+
+  const handleAddViaAI = async () => {
+    const token = await getCookie("amalajeun_token");
+    if (token?.value) {
+      setAddingMode(true);
+      setIsInstructionsOpen(true);
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    const getToken = async () => {
+      let token = await getCookie("amalajeun_token");
+      if (token?.value) {
+        setAccessToken(token?.value);
+      }
+    };
+    getToken();
+  }, []);
 
   return (
     <div className="relative h-[calc(100vh-0px)] w-full">
@@ -165,8 +191,7 @@ export default function AmalaMap() {
           <button
             className="rounded-xl bg-black px-3 py-1 text-xs font-semibold text-white hover:bg-gray-900"
             onClick={() => {
-              setAddingMode(true);
-              setIsInstructionsOpen(true);
+              handleAddViaAI();
             }}
           >
             + Add via AI
@@ -335,10 +360,14 @@ export default function AmalaMap() {
               </p>
               <div className="h-96">
                 {/* @ts-ignore */}
-                <AmalaChat
-                  lat={candidate.lat.toFixed(5)}
-                  lng={candidate.lng.toFixed(5)}
-                />
+                {user && (
+                  <AmalaChat
+                    lat={candidate.lat.toFixed(5)}
+                    lng={candidate.lng.toFixed(5)}
+                    accessToken={accessToken}
+                    user={user}
+                  />
+                )}
               </div>
             </div>
           )}
@@ -378,6 +407,11 @@ export default function AmalaMap() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <GoogleAuth
+        isAuthModalOpen={isAuthModalOpen}
+        setIsAuthModalOpen={setIsAuthModalOpen}
+      />
     </div>
   );
 }

@@ -17,3 +17,13 @@ export type AmalaSpot = {
   status: SpotStatus;
   neighborhood?: string;
 };
+
+export type User = {
+    id: string 
+    email: string 
+    name: string 
+    avatar_url: string 
+    google_id: string
+    created_at: string
+    last_login_at: string
+}

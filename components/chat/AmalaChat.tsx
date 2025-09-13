@@ -1,15 +1,26 @@
 "use client";
 
+import { User } from "@/types/type";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Send } from "lucide-react";
 import { useState } from "react";
 
-export default function AmalaChat({ lat, lng }: { lat: string; lng: string }) {
+export default function AmalaChat({
+  lat,
+  lng,
+  user,
+  accessToken,
+}: {
+  lat: string;
+  lng: string;
+  user: User;
+  accessToken: string;
+}) {
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      body: { lat, lng },
+      body: { lat, lng, userId: user.id, userName: user.name, accessToken },
     }),
   });
 
