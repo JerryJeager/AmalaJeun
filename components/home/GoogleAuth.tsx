@@ -26,7 +26,8 @@ const GoogleAuth = ({
         router.push(res.data.auth_url);
       }
     } catch (err) {
-    toast.error("Failed to authenticate with Google. Please try again.");
+      toast.error("Failed to authenticate with Google. Please try again.");
+      console.log(err);
     } finally {
       setIsLoading(false);
     }
