@@ -20,9 +20,17 @@ export default function AmalaChat({
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
-      body: { lat, lng, userId: user.id, userName: user.name, accessToken },
+      body: {
+        latitude: lat,
+        longitude: lng,
+        user_id: user.id,
+        added_by: user.name,
+        access_token: accessToken,
+      },
     }),
   });
+
+//   console.log(accessToken)
 
   const [input, setInput] = useState("");
   const [showTyping, setShowTyping] = useState(false);

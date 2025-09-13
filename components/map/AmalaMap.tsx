@@ -360,7 +360,7 @@ export default function AmalaMap() {
               </p>
               <div className="h-96">
                 {/* @ts-ignore */}
-                {user && (
+                {user && accessToken && (
                   <AmalaChat
                     lat={candidate.lat.toFixed(5)}
                     lng={candidate.lng.toFixed(5)}

@@ -24,6 +24,8 @@ export default function Map() {
           },
         });
 
+        console.log(res.status)
+
         console.log(res.data);
         if (res.status == 200) {
           setUser(res.data.user);
