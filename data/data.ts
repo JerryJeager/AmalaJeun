@@ -2,7 +2,7 @@ import { AmalaSpot } from "@/types/type";
 
 export const BASE_URL = () => {
     if (process.env.NODE_ENV === "production") {
-        return "http://amalajeun-web-service.up.railway.app";
+        return "https://amalajeun-backend-test.onrender.com";
     }else{
         return "http://localhost:80";
     }
