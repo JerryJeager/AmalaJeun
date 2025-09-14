@@ -30,5 +30,5 @@ GOOGLE_API_KEY=your_google_api_key_here
 
 ### 4. Run the Development Server
 ```bash
-GOOGLE_API_KEY=your_google_api_key_here
+npm run dev
 ```
