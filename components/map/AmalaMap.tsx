@@ -8,10 +8,8 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 const MapContainer = dynamic(
@@ -38,15 +36,166 @@ const MarkerClusterGroup: any = dynamic(
 
 import L from "leaflet";
 import { DUMMY_SPOTS } from "@/data/data";
-import { PriceBand, SpotStatus } from "@/types/type";
+import type { PriceBand, SpotStatus } from "@/types/type";
 import AmalaChat from "../chat/AmalaChat";
-import { Button } from "../ui/button";
 import GoogleAuth from "../home/GoogleAuth";
 import { getCookie } from "@/actions/handleCookies";
 import useUserStore from "@/store/useUserStore";
 import InstructionDialog from "./InstructionDialog";
 
-// --- Map helpers
+interface PlacePrediction {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
+}
+
+interface PlaceDetails {
+  location: {
+    lat: () => number;
+    lng: () => number;
+  };
+
+  formatted_address: string;
+  name: string;
+}
+
+function useGooglePlaces() {
+  const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const initializeServices = () => {
+      console.log("Google Maps loaded, ready to use new APIs");
+    };
+
+    if (window.google) {
+      initializeServices();
+    } else {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.onload = initializeServices;
+      document.head.appendChild(script);
+    }
+  }, []);
+
+  const searchPlaces = async (input: string) => {
+    if (
+      !window.google ||
+      !window.google.maps ||
+      !window.google.maps.places ||
+      input.length < 2
+    ) {
+      setPredictions([]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const request = {
+        input,
+        locationBias: {
+          north: 6.6,
+          south: 6.4,
+          east: 3.4,
+          west: 3.3,
+        },
+        includedPrimaryTypes: ["establishment", "geocode"],
+      };
+
+      const { suggestions } =
+        await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+          request
+        );
+
+      if (suggestions) {
+        const convertedPredictions = suggestions.map((suggestion: any) => ({
+          place_id:
+            suggestion.placePrediction?.placeId ||
+            suggestion.queryPrediction?.placeId ||
+            "",
+          description:
+            suggestion.placePrediction?.text?.text ||
+            suggestion.queryPrediction?.text?.text ||
+            "",
+          structured_formatting: {
+            main_text:
+              suggestion.placePrediction?.structuredFormat?.mainText?.text ||
+              suggestion.queryPrediction?.text?.text ||
+              "",
+            secondary_text:
+              suggestion.placePrediction?.structuredFormat?.secondaryText
+                ?.text || "",
+          },
+        }));
+        console.log(convertedPredictions);
+        setPredictions(convertedPredictions);
+      } else {
+        setPredictions([]);
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching place predictions:", error);
+      setPredictions([]);
+      setIsLoading(false);
+    }
+  };
+
+  const getPlaceDetails = async (
+    placeId: string
+  ): Promise<PlaceDetails | null> => {
+    if (!window.google || !placeId) return null;
+
+    try {
+      const place = new window.google.maps.places.Place({
+        id: placeId,
+        requestedLanguage: "en",
+      });
+
+      await place.fetchFields({
+        fields: ["location", "formattedAddress", "displayName"],
+      });
+
+      if (place.location) {
+        return {
+          location: {
+            lat: () => place.location!.lat(),
+            lng: () => place.location!.lng(),
+          },
+
+          formatted_address: place.formattedAddress || "",
+          name: place.displayName || "",
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching place details:", error);
+      return null;
+    }
+  };
+
+  return { predictions, isLoading, searchPlaces, getPlaceDetails };
+}
+
+function MapController({
+  center,
+  zoom,
+}: {
+  center: [number, number] | null;
+  zoom?: number;
+}) {
+  const map = useMap() as LeafletMap;
+
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, zoom || 14, { duration: 1 });
+    }
+  }, [center, zoom, map]);
+
+  return null;
+}
 
 function statusColor(status: SpotStatus) {
   switch (status) {
@@ -87,7 +236,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 function LocateButton() {
-  const map = (useMap as any)() as LeafletMap;
+  const map = useMap() as LeafletMap;
   return (
     <button
       onClick={() => {
@@ -116,6 +265,12 @@ export default function AmalaMap() {
   const { user } = useUserStore();
   const [accessToken, setAccessToken] = useState("");
 
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
+  const { predictions, isLoading, searchPlaces, getPlaceDetails } =
+    useGooglePlaces();
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+
   const filtered = useMemo(() => {
     return DUMMY_SPOTS.filter((s) => {
       if (onlyVerified && s.status !== "verified") return false;
@@ -132,6 +287,37 @@ export default function AmalaMap() {
   }, [onlyVerified, openNow, price, query]);
 
   const center: [number, number] = [6.5244, 3.3792]; // Lagos
+
+  const handleSearchChange = (value: string) => {
+    setQuery(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    setShowSuggestions(value.length > 0);
+
+    if (value.length >= 2) {
+      searchTimeoutRef.current = setTimeout(() => {
+        searchPlaces(value);
+      }, 300);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handlePlaceSelect = async (prediction: PlacePrediction) => {
+    const placeDetails = await getPlaceDetails(prediction.place_id);
+    if (placeDetails) {
+      const lat = placeDetails.location.lat();
+      const lng = placeDetails.location.lng();
+
+      setQuery(prediction.description);
+      setShowSuggestions(false);
+
+      setMapCenter([lat, lng]);
+    }
+  };
 
   function ClickHandler({ setCandidate }: { setCandidate: any }) {
     useMapEvents({
@@ -154,7 +340,7 @@ export default function AmalaMap() {
 
   useEffect(() => {
     const getToken = async () => {
-      let token = await getCookie("amalajeun_token");
+      const token = await getCookie("amalajeun_token");
       if (token?.value) {
         setAccessToken(token?.value);
       }
@@ -164,15 +350,51 @@ export default function AmalaMap() {
 
   return (
     <div className="relative h-[calc(100vh-0px)] w-full">
-      {/* Floating top bar */}
       <div className="pointer-events-auto absolute left-1/2 top-4 z-[3] w-[92%] max-w-3xl -translate-x-1/2">
-        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-2 shadow-lg">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search Amala spots, areas…"
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-2 text-sm outline-none"
-          />
+        <div className="flex relative flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-2 shadow-lg">
+          {showSuggestions && (predictions.length > 0 || isLoading) && (
+            <div className="absolute top-full w-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto z-50">
+              {isLoading ? (
+                <div className="p-3 text-sm text-gray-500">Searching...</div>
+              ) : (
+                <div className="py-1">
+                  {predictions.map((prediction) => (
+                    <button
+                      key={prediction.place_id}
+                      onClick={() => handlePlaceSelect(prediction)}
+                      className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-none"
+                    >
+                      <div className="text-sm font-medium text-gray-900">
+                        {prediction.structured_formatting.main_text ||
+                          prediction.description}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {prediction.structured_formatting.secondary_text}
+                      </div>
+                    </button>
+                  ))}
+                  {predictions.length === 0 && query.length >= 2 && (
+                    <div className="p-3 text-sm text-gray-500">
+                      No places found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="flex-1 relative">
+            <input
+              value={query}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onFocus={() => setShowSuggestions(query.length > 0)}
+              onBlur={() => {
+                // Delay hiding suggestions to allow clicks
+                setTimeout(() => setShowSuggestions(false), 150);
+              }}
+              placeholder="Search Amala spots, areas…"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-500 outline-none focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
+            />
+          </div>
           <label className="flex items-center gap-2 rounded-xl border border-gray-200 px-2 py-1 text-xs">
             <input
               type="checkbox"
@@ -199,7 +421,6 @@ export default function AmalaMap() {
           </button>
         </div>
       </div>
-      {/* Legend */}
       <div className="pointer-events-none absolute left-4 top-4 z-[1] hidden w-48 rounded-2xl bg-white/90 p-3 text-xs shadow-md md:block">
         <div className="mb-1 font-semibold">Legend</div>
         <div className="flex items-center gap-2">
@@ -234,9 +455,8 @@ export default function AmalaMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-
+        <MapController center={mapCenter} />
         {addingMode && <ClickHandler setCandidate={setCandidate} />}
-
         {candidate && (
           <Marker
             position={candidate}
@@ -265,19 +485,6 @@ export default function AmalaMap() {
             </Popup>
           </Marker>
         )}
-
-        {/* {pickedPoint && (
-          <Marker
-            position={pickedPoint}
-            icon={L.divIcon({
-              className: "amala-marker-temp",
-              html: `<div style="color:red;font-weight:bold;">📍</div>`,
-            })}
-          >
-            <Popup>New Amala Spot</Popup>
-          </Marker>
-        )} */}
-
         <MarkerClusterGroup
           chunkedLoading
           showCoverageOnHover={false}
@@ -336,17 +543,10 @@ export default function AmalaMap() {
             </Marker>
           ))}
         </MarkerClusterGroup>
-
-        {/* Locate */}
-        {/* @ts-ignore */}
         <LocateButton />
       </MapContainer>
-      {/* Chat Modal */}
       <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
-        <DialogContent
-          className="sm:max-w-[500px] h-[600px] flex flex-col p-4"
-          //   style={{ zIndex: 9999, position: "relative" }}
-        >
+        <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-4">
           <DialogHeader>
             <DialogTitle>Describe the Amala Spot</DialogTitle>
             <DialogDescription>
@@ -360,7 +560,6 @@ export default function AmalaMap() {
                 Location: {candidate.lat.toFixed(5)}, {candidate.lng.toFixed(5)}
               </p>
               <div className="h-96">
-                {/* @ts-ignore */}
                 {user && accessToken && (
                   <AmalaChat
                     lat={candidate.lat.toFixed(5)}
