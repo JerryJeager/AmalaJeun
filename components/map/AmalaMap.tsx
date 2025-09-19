@@ -42,6 +42,7 @@ import GoogleAuth from "../home/GoogleAuth";
 import { getCookie } from "@/actions/handleCookies";
 import useUserStore from "@/store/useUserStore";
 import InstructionDialog from "./InstructionDialog";
+import { useRouter } from "next/navigation";
 
 interface PlacePrediction {
   place_id: string;
@@ -264,6 +265,7 @@ export default function AmalaMap() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { user } = useUserStore();
   const [accessToken, setAccessToken] = useState("");
+  const router = useRouter();
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
@@ -545,7 +547,16 @@ export default function AmalaMap() {
         </MarkerClusterGroup>
         <LocateButton />
       </MapContainer>
-      <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+      <Dialog
+        open={isChatOpen}
+        onOpenChange={(open) => {
+          setIsChatOpen(open);
+          if (!open) {
+            // dialog just closed
+            router.refresh();
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-4">
           <DialogHeader>
             <DialogTitle>Describe the Amala Spot</DialogTitle>

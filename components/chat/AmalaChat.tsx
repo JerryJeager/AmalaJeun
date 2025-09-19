@@ -1,11 +1,9 @@
 "use client";
-
-import { User } from "@/types/type";
+import type { User } from "@/types/type";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Send } from "lucide-react";
-import { useState } from "react";
-
+import { useState, useRef, useEffect } from "react";
 export default function AmalaChat({
   lat,
   lng,
@@ -30,15 +28,27 @@ export default function AmalaChat({
     }),
   });
 
-//   console.log(accessToken)
-
   const [input, setInput] = useState("");
-  const [showTyping, setShowTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    };
+
+    scrollToBottom();
+  }, [messages, status]);
 
   return (
     <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl flex flex-col">
       {/* Messages */}
-      <div className="h-72 overflow-y-auto border-b pb-3 mb-3 space-y-2">
+      <div
+        ref={messagesContainerRef}
+        className="h-72 overflow-y-auto border-b pb-3 mb-3 space-y-2"
+      >
         {/* Static welcome message */}
         {messages.length === 0 && (
           <div className="flex justify-start">
@@ -48,7 +58,6 @@ export default function AmalaChat({
             </div>
           </div>
         )}
-
         {messages.map((m) => (
           <div
             key={m.id}
@@ -63,22 +72,53 @@ export default function AmalaChat({
                   : "bg-gray-100 text-gray-800 rounded-bl-none"
               }`}
             >
-              {m.parts
-                .filter((p) => p.type === "text")
-                .map((p, i) => (
-                  <span key={i}>{p.text}</span>
-                ))}
+              {m.parts.map((part, partIndex) => {
+                switch (part.type) {
+                  case "text":
+                    return <span key={partIndex}>{part.text}</span>;
+                  case "tool-addAmalaSpot":
+                    switch (part.state) {
+                      case "input-streaming":
+                        return (
+                          <div key={partIndex} className="text-sm italic">
+                            Processing spot details...
+                          </div>
+                        );
+                      case "input-available":
+                        return (
+                          <div key={partIndex} className="text-sm italic">
+                            Adding spot to database...
+                          </div>
+                        );
+                      case "output-available":
+                        return (
+                          <div key={partIndex} className="font-medium">
+                            ✅ Spot has been added successfully!
+                          </div>
+                        );
+                      case "output-error":
+                        return (
+                          <div key={partIndex} className="text-red-600">
+                            ❌ Error: {part.errorText}
+                          </div>
+                        );
+                      default:
+                        return null;
+                    }
+                  default:
+                    return null;
+                }
+              })}
             </div>
           </div>
         ))}
-
         {status === "submitted" && (
           <div className="text-sm text-gray-500 italic">
             AmalaJẹun Bot is typing...
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
-
       {/* Input */}
       <form
         onSubmit={(e) => {
