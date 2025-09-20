@@ -277,7 +277,8 @@ export default function AmalaMap() {
       }
 
       // Price range filter
-      if (spot.price < priceRange[0] || spot.price > priceRange[1]) {
+      const effectivePrice = spot.price === 0 ? 1000 : spot.price;
+      if (effectivePrice < priceRange[0] || effectivePrice > priceRange[1]) {
         return false;
       }
 
