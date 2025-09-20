@@ -56,14 +56,6 @@ export function ReviewDialog({
         setIsLoading(false);
         return;
       }
-      console.log({
-        spot_id: spot.id,
-        rating: rating,
-        comment: comment,
-        user_name: user?.name,
-        user: { ...user },
-        spot: { ...spot },
-      });
       const res = await axios.post(
         `${BASE_URL()}/api/v1/reviews`,
         {
@@ -72,7 +64,7 @@ export function ReviewDialog({
           comment: comment,
           user_name: user?.name,
           user: { ...user },
-          spot: { ...spot },
+          spot: { ...spot, added_by: user?.name },
         },
         {
           headers: {
