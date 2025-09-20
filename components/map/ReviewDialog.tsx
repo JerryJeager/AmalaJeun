@@ -30,7 +30,12 @@ interface ReviewDialogProps {
   setOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export function ReviewDialog({ spot, setIsAuthModalOpen, open, setOpen }: ReviewDialogProps) {
+export function ReviewDialog({
+  spot,
+  setIsAuthModalOpen,
+  open,
+  setOpen,
+}: ReviewDialogProps) {
   const [mode, setMode] = useState<"view" | "create">("view");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -51,6 +56,14 @@ export function ReviewDialog({ spot, setIsAuthModalOpen, open, setOpen }: Review
         setIsLoading(false);
         return;
       }
+      console.log({
+        spot_id: spot.id,
+        rating: rating,
+        comment: comment,
+        user_name: user?.name,
+        user: { ...user },
+        spot: { ...spot },
+      });
       const res = await axios.post(
         `${BASE_URL()}/api/v1/reviews`,
         {
@@ -58,8 +71,8 @@ export function ReviewDialog({ spot, setIsAuthModalOpen, open, setOpen }: Review
           rating: rating,
           comment: comment,
           user_name: user?.name,
-          user: {...user},
-          spot: {...spot},
+          user: { ...user },
+          spot: { ...spot },
         },
         {
           headers: {
@@ -137,7 +150,12 @@ export function ReviewDialog({ spot, setIsAuthModalOpen, open, setOpen }: Review
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="text-primary border-2 border-primary bg-transparent">Reviews</Button>
+        <Button
+          variant="outline"
+          className="text-primary border-2 border-primary bg-transparent"
+        >
+          Reviews
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
@@ -151,7 +169,9 @@ export function ReviewDialog({ spot, setIsAuthModalOpen, open, setOpen }: Review
           </DialogTitle>
           <DialogDescription>
             {mode === "view"
-              ? `${reviews.length} review${reviews.length !== 1 ? "s" : ""} • Average: ${avgRating} stars`
+              ? `${reviews.length} review${
+                  reviews.length !== 1 ? "s" : ""
+                } • Average: ${avgRating} stars`
               : "Share your experience with others"}
           </DialogDescription>
         </DialogHeader>
@@ -232,7 +252,11 @@ export function ReviewDialog({ spot, setIsAuthModalOpen, open, setOpen }: Review
             </div>
 
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isLoading}
+              >
                 Cancel
               </Button>
               <Button
