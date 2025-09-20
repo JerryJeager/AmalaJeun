@@ -18,6 +18,24 @@ export type AmalaSpot = {
   neighborhood?: string;
 };
 
+export type AmalaSpotNew = {
+  id: string
+  name: string 
+  address: string
+  latitude: number 
+  longitude: number 
+  user_id: string
+  added_by: string 
+  opening_time: string
+  closing_time: string
+  price: number
+  dine_in: boolean 
+  source: string
+  verified: boolean 
+  created_at: string
+  updated_at: string
+}
+
 export type User = {
     id: string 
     email: string 
@@ -26,4 +44,23 @@ export type User = {
     google_id: string
     created_at: string
     last_login_at: string
+}
+
+export interface PlacePrediction {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
+}
+
+export interface PlaceDetails {
+  location: {
+    lat: () => number;
+    lng: () => number;
+  };
+
+  formatted_address: string;
+  name: string;
 }

@@ -39,7 +39,7 @@ const GoogleAuth = ({
           <Card className="w-full max-w-md bg-background border-border/50">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-foreground">
+                <h2 className="text-2xl text-primary font-bold">
                   Welcome to AmalaJẹun
                 </h2>
                 <button

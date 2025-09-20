@@ -19,9 +19,9 @@ const InstructionDialog = ({
 }) => {
   return (
     <Dialog open={isInstructionsOpen} onOpenChange={setIsInstructionsOpen}>
-        <DialogTrigger asChild>
+        {/* <DialogTrigger asChild>
           <Button variant="default">Add Amala Spot</Button>
-        </DialogTrigger>
+        </DialogTrigger> */}
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>How to Add an Amala Location</DialogTitle>
