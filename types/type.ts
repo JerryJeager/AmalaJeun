@@ -19,7 +19,7 @@ export type AmalaSpot = {
 };
 
 export type AmalaSpotNew = {
-  id: string
+  id: number
   name: string 
   address: string
   latitude: number 
@@ -63,4 +63,14 @@ export interface PlaceDetails {
 
   formatted_address: string;
   name: string;
+}
+
+export type Review =  {
+  id: number
+  spot_id: number
+  user_name: string
+  rating: number 
+  comment: string
+  created_at: string
+  updated_at: string
 }

@@ -50,11 +50,11 @@ import GoogleAuth from "../home/GoogleAuth";
 import { getCookie } from "@/actions/handleCookies";
 import useUserStore from "@/store/useUserStore";
 import InstructionDialog from "./InstructionDialog";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 import { useGooglePlaces } from "@/hooks/use-google-places";
 import { Loader2, Filter } from "lucide-react";
+import { ReviewDialog } from "./ReviewDialog";
 
 function MapController({
   center,
@@ -101,17 +101,6 @@ function makeDivIcon(label: string, status: SpotStatus) {
   });
 }
 
-function Stars({ rating }: { rating: number }) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  const stars = Array.from({ length: 5 }).map((_, i) => {
-    if (i < full) return "★";
-    if (i === full && half) return "☆"; // simple half placeholder
-    return "☆";
-  });
-  return <span className="ml-1 text-xs opacity-70">{stars.join("")}</span>;
-}
-
 function LocateButton() {
   const map = useMap() as LeafletMap;
   return (
@@ -129,11 +118,14 @@ function LocateButton() {
 }
 
 function isSpotOpenNow(openingTime: string, closingTime: string): boolean {
+  const defaultOpeningTime = openingTime || "09:00";
+  const defaultClosingTime = closingTime || "17:00";
+
   const now = new Date();
   const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
 
-  const [openHour, openMin] = openingTime.split(":").map(Number);
-  const [closeHour, closeMin] = closingTime.split(":").map(Number);
+  const [openHour, openMin] = defaultOpeningTime.split(":").map(Number);
+  const [closeHour, closeMin] = defaultClosingTime.split(":").map(Number);
 
   const openTimeMinutes = openHour * 60 + openMin;
   const closeTimeMinutes = closeHour * 60 + closeMin;
@@ -163,7 +155,7 @@ export default function AmalaMap() {
   const [accessToken, setAccessToken] = useState("");
   const [amalaSpots, setAmalaSpots] = useState<AmalaSpotNew[]>([]);
   const [isAmalaSpotsLoading, setIsAmalaSpotsLoading] = useState(false);
-  const router = useRouter();
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -224,6 +216,34 @@ export default function AmalaMap() {
     }
   };
 
+  const handleVerifySpot = async (spotId: number, spotUserId: string) => {
+    try {
+      if (!user || !accessToken) {
+        setIsAuthModalOpen(true);
+      }
+      if (user && accessToken) {
+        if (user.id != spotUserId) {
+          const res = await axios.patch(
+            `${BASE_URL()}/api/v1/spots/${spotId}/verify`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+          if (res.status == 200) {
+            toast.success("Spot has been verified successfully!");
+          }
+        } else {
+          toast.error("You cannot verify a spot you added.");
+        }
+      }
+    } catch {
+      toast.error("Failed to verify spot. Please try again.");
+    }
+  };
+
   useEffect(() => {
     const getMapData = async () => {
       try {
@@ -253,13 +273,14 @@ export default function AmalaMap() {
   const filteredSpots = useMemo(() => {
     return amalaSpots.filter((spot) => {
       // Search query filter
-      if (
-        query &&
-        !spot.name.toLowerCase().includes(query.toLowerCase()) &&
-        !spot.address.toLowerCase().includes(query.toLowerCase())
-      ) {
-        return false;
-      }
+      //use google places api for search
+      // if (
+      //   query &&
+      //   !spot.name.toLowerCase().includes(query.toLowerCase()) &&
+      //   !spot.address.toLowerCase().includes(query.toLowerCase())
+      // ) {
+      //   return false;
+      // }
 
       // Verified filter
       if (onlyVerified && !spot.verified) {
@@ -272,7 +293,7 @@ export default function AmalaMap() {
       }
 
       // Dine-in filter
-      if (dineIn && !spot.dine_in) {
+      if (dineIn && !(spot.dine_in || spot.source === "scraper")) {
         return false;
       }
 
@@ -525,6 +546,10 @@ export default function AmalaMap() {
                     spot.opening_time,
                     spot.closing_time
                   );
+                  const displayOpeningTime = spot.opening_time || "9:00 AM";
+                  const displayClosingTime = spot.closing_time || "5:00 PM";
+                  const displayPrice = spot.price === 0 ? 1000 : spot.price;
+
                   return (
                     <Marker
                       key={spot.id}
@@ -554,10 +579,10 @@ export default function AmalaMap() {
                               {spot.verified ? "Verified" : "Pending"}
                             </span>
                             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px]">
-                              ₦{spot.price.toLocaleString()}
+                              ₦{displayPrice.toLocaleString()}
                             </span>
                             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px]">
-                              {spot.opening_time} - {spot.closing_time}
+                              {displayOpeningTime} - {displayClosingTime}
                             </span>
                             <span
                               className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
@@ -568,7 +593,8 @@ export default function AmalaMap() {
                             >
                               {isOpen ? "Open" : "Closed"}
                             </span>
-                            {spot.dine_in && (
+                            {(spot.dine_in ||
+                              (!spot.dine_in && spot.source == "scraper")) && ( //used true as default value for amala spots that were scraped from the internet
                               <span className="rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-[10px]">
                                 Eat-in
                               </span>
@@ -576,13 +602,20 @@ export default function AmalaMap() {
                           </div>
                           <div className="mt-3 flex gap-2">
                             <button
-                              className="rounded-lg bg-black px-3 py-1 text-xs font-semibold text-white"
+                              className="rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-white"
                               onClick={() =>
-                                alert("Verify flow – to implement")
+                                handleVerifySpot(spot.id, spot.user_id)
                               }
                             >
                               Verify
                             </button>
+
+                            <ReviewDialog
+                              spot={spot}
+                              setIsAuthModalOpen={setIsAuthModalOpen}
+                              open={isReviewOpen}
+                              setOpen={setIsReviewOpen}
+                            />
                           </div>
                         </div>
                       </Popup>
@@ -599,7 +632,7 @@ export default function AmalaMap() {
               setIsChatOpen(open);
               if (!open) {
                 // dialog just closed
-                if (window) window.location.reload()
+                if (window) window.location.reload();
               }
             }}
           >
