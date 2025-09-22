@@ -1,0 +1,13 @@
+{
+  "name": "AmalaJẹun",
+  "short_name": "AmalaJẹun",
+  "start_url": "/map",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff6f3",
+  "theme_color": "#744B20",
+  "icons": [
+    { "src": "/logo2.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo3.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

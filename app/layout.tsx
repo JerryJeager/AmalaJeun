@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     shortcut: "https://amalajeun.vercel.app/logo.svg",
     apple: "https://amalajeun.vercel.app/logo.svg",
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -32,6 +33,7 @@ export default function RootLayout({
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`}
           strategy="beforeInteractive"
         />
+        <meta name="theme-color" content="#744B20" />
       </head>
       <body
         className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased`}
