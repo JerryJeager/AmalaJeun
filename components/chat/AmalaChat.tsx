@@ -93,7 +93,9 @@ export default function AmalaChat({
                       case "output-available":
                         return (
                           <div key={partIndex} className="font-medium">
-                            ✅ Spot has been added successfully!
+                            {(part.output as { success?: any })?.success
+                              ? "Spot added successfully. Thank you for contributing. You can now close this chat and continue exploring, or come back later to add another spot."
+                              : "Sorry, something went wrong while adding the spot. Please try again later."}
                           </div>
                         );
                       case "output-error":
