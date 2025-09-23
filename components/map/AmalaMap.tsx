@@ -55,6 +55,7 @@ import { toast } from "sonner";
 import { useGooglePlaces } from "@/hooks/use-google-places";
 import { Loader2, Filter } from "lucide-react";
 import { ReviewDialog } from "./ReviewDialog";
+import { SpotsListSheet } from "./SpotList";
 
 function MapController({
   center,
@@ -214,6 +215,10 @@ export default function AmalaMap() {
     } else {
       setIsAuthModalOpen(true);
     }
+  };
+
+  const onSpotSelect = (spot: AmalaSpotNew) => {
+    setMapCenter([spot.latitude, spot.longitude]);
   };
 
   const handleVerifySpot = async (spotId: number, spotUserId: string) => {
@@ -410,7 +415,7 @@ export default function AmalaMap() {
                           type="checkbox"
                           checked={onlyVerified}
                           onChange={(e) => setOnlyVerified(e.target.checked)}
-                          className="rounded"
+                          className="rounded w-full"
                         />
                         Verified spots only
                       </label>
@@ -443,7 +448,7 @@ export default function AmalaMap() {
                   </div>
                 </div>
               )}
-              <div className="flex-1 relative">
+              <div className="flex-1 relative w-full">
                 <input
                   value={query}
                   onChange={(e) => handleSearchChange(e.target.value)}
@@ -482,6 +487,15 @@ export default function AmalaMap() {
               >
                 + Add via AI
               </button>
+
+              <div>
+                {amalaSpots && (
+                  <SpotsListSheet
+                    spots={amalaSpots}
+                    onSpotSelect={onSpotSelect}
+                  />
+                )}
+              </div>
             </div>
           </div>
 
