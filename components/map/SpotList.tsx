@@ -113,66 +113,79 @@ export function SpotsListSheet({ spots, onSpotSelect }: SpotsListSheetProps) {
                 <p>No spots found matching your search.</p>
               </div>
             ) : (
-              filteredSpots.map((spot) => (
-                <Card
-                  key={spot.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleSpotClick(spot)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg font-medium text-balance">
-                        {spot.name}
-                      </CardTitle>
-                      <div className="flex gap-1 ml-2">
-                        {spot.verified && (
-                          <Badge variant="secondary" className="text-xs">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Verified
-                          </Badge>
-                        )}
-                        {spot.dine_in && (
-                          <Badge variant="outline" className="text-xs">
-                            <UtensilsCrossed className="h-3 w-3 mr-1" />
-                            Dine-in
-                          </Badge>
-                        )}
+              filteredSpots.map((spot) => {
+                const isDineIn = spot.source !== "user" ? true : spot.dine_in;
+                const openingTime =
+                  spot.opening_time && spot.opening_time.trim() !== ""
+                    ? spot.opening_time
+                    : "09:00";
+                const closingTime =
+                  spot.closing_time && spot.closing_time.trim() !== ""
+                    ? spot.closing_time
+                    : "17:00";
+                const price =
+                  spot.price && spot.price !== 0 ? spot.price : 1000;
+                return (
+                  <Card
+                    key={spot.id}
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleSpotClick(spot)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-lg font-medium text-balance">
+                          {spot.name}
+                        </CardTitle>
+                        <div className="flex gap-1 ml-2">
+                          {spot.verified && (
+                            <Badge variant="secondary" className="text-xs">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Verified
+                            </Badge>
+                          )}
+                          {isDineIn && (
+                            <Badge variant="outline" className="text-xs">
+                              <UtensilsCrossed className="h-3 w-3 mr-1" />
+                              Dine-in
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardHeader>
+                    </CardHeader>
 
-                  <CardContent className="pt-0 space-y-3">
-                    <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                      <span className="text-pretty">{spot.address}</span>
-                    </div>
+                    <CardContent className="pt-0 space-y-3">
+                      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span className="text-pretty">{spot.address}</span>
+                      </div>
 
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>
+                            {formatTime(openingTime)} -{" "}
+                            {formatTime(closingTime)}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">
+                            {formatPrice(price)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+                        {spot.added_by && <span>Added by {spot.added_by}</span>}
                         <span>
-                          {formatTime(spot.opening_time)} -{" "}
-                          {formatTime(spot.closing_time)}
+                          Source:{" "}
+                          {spot.source == "user" ? spot.source : "AI/Scrapper"}
                         </span>
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {formatPrice(spot.price)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
-                      {spot.added_by && <span>Added by {spot.added_by}</span>}
-                      <span>
-                        Source:{" "}
-                        {spot.source == "user" ? spot.source : "AI/Scrapper"}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                    </CardContent>
+                  </Card>
+                );
+              })
             )}
           </div>
         </ScrollArea>
