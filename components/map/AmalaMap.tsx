@@ -336,7 +336,10 @@ export default function AmalaMap() {
           <div className="pointer-events-auto absolute left-1/2 top-4 z-[3] w-[92%] max-w-3xl -translate-x-1/2">
             <div className="flex relative flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-2 shadow-lg">
               {showSuggestions && (predictions.length > 0 || isLoading) && (
-                <div className="absolute top-full w-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto z-50">
+                <div
+                  className="absolute top-full w-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-80 overflow-y-auto z-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {isLoading ? (
                     <div className="p-3 text-sm text-gray-500">
                       Searching...
@@ -344,10 +347,11 @@ export default function AmalaMap() {
                   ) : (
                     <div className="py-1">
                       {predictions.map((prediction) => (
-                        <button
+                        <div
                           key={prediction.place_id}
-                          onClick={() => handlePlaceSelect(prediction)}
-                          className="w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-none"
+                          role="button"
+                          onMouseDown={() => handlePlaceSelect(prediction)}
+                          className="cursor-pointer w-full px-3 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-none"
                         >
                           <div className="text-sm font-medium text-gray-900">
                             {prediction.structured_formatting.main_text ||
@@ -356,7 +360,7 @@ export default function AmalaMap() {
                           <div className="text-xs text-gray-500">
                             {prediction.structured_formatting.secondary_text}
                           </div>
-                        </button>
+                        </div>
                       ))}
                       {predictions.length === 0 && query.length >= 2 && (
                         <div className="p-3 text-sm text-gray-500">
