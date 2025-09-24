@@ -128,8 +128,10 @@ export async function POST(req: NextRequest) {
             }),
           });
           if (res.status == 201) {
+            const createdSpot = await res.json()
             return {
               success: true,
+              spot: createdSpot?.data,
               content: [
                 {
                   type: "text",

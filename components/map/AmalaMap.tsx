@@ -56,6 +56,8 @@ import { useGooglePlaces } from "@/hooks/use-google-places";
 import { Loader2, Filter } from "lucide-react";
 import { ReviewDialog } from "./ReviewDialog";
 import { SpotsListSheet } from "./SpotList";
+import { GetDistance, isSpotOpenNow } from "@/lib/utils";
+import LocateButton from "./LocateButton";
 
 function MapController({
   center,
@@ -102,52 +104,13 @@ function makeDivIcon(label: string, status: SpotStatus) {
   });
 }
 
-function LocateButton() {
-  const map = useMap() as LeafletMap;
-  return (
-    <button
-      onClick={() => {
-        map.locate().on("locationfound", (e: any) => {
-          map.flyTo(e.latlng, 14, { duration: 0.75 });
-        });
-      }}
-      className="absolute bottom-5 right-5 z-[1000] rounded-2xl bg-white/90 px-3 py-2 text-sm font-semibold shadow-md hover:bg-white"
-    >
-      Locate me
-    </button>
-  );
-}
-
-function isSpotOpenNow(openingTime: string, closingTime: string): boolean {
-  const defaultOpeningTime = openingTime || "09:00";
-  const defaultClosingTime = closingTime || "17:00";
-
-  const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
-
-  const [openHour, openMin] = defaultOpeningTime.split(":").map(Number);
-  const [closeHour, closeMin] = defaultClosingTime.split(":").map(Number);
-
-  const openTimeMinutes = openHour * 60 + openMin;
-  const closeTimeMinutes = closeHour * 60 + closeMin;
-
-  // Handle cases where closing time is next day (e.g., 23:00 - 02:00)
-  if (closeTimeMinutes < openTimeMinutes) {
-    return currentTime >= openTimeMinutes || currentTime <= closeTimeMinutes;
-  }
-
-  return currentTime >= openTimeMinutes && currentTime <= closeTimeMinutes;
-}
-
 export default function AmalaMap() {
   const [query, setQuery] = useState("");
   const [onlyVerified, setOnlyVerified] = useState(false);
   const [openNow, setOpenNow] = useState(false);
   const [dineIn, setDineIn] = useState(false);
   const [priceRange, setPriceRange] = useState([1000, 10000]);
-  const [price, setPrice] = useState<PriceBand | "all">("all");
-  const [addingMode, setAddingMode] = useState(false);
-  const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
+  const [addingMode, setAddingMode] = useState(true);
   const [candidate, setCandidate] = useState<L.LatLng | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
@@ -157,6 +120,9 @@ export default function AmalaMap() {
   const [amalaSpots, setAmalaSpots] = useState<AmalaSpotNew[]>([]);
   const [isAmalaSpotsLoading, setIsAmalaSpotsLoading] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [activeReviewSpotId, setActiveReviewSpotId] = useState<string | null>(
+    null
+  );
 
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -166,6 +132,7 @@ export default function AmalaMap() {
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const center: [number, number] = [6.5244, 3.3792]; // Lagos
+  const [mapZoom, setMapZoom] = useState<number>(11);
 
   const handleSearchChange = (value: string) => {
     setQuery(value);
@@ -195,6 +162,8 @@ export default function AmalaMap() {
       setShowSuggestions(false);
 
       setMapCenter([lat, lng]);
+      setMapZoom(20);
+      setCandidate(L.latLng(lat, lng));
     }
   };
 
@@ -212,6 +181,15 @@ export default function AmalaMap() {
     if (token?.value) {
       setAddingMode(true);
       setIsInstructionsOpen(true);
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
+  const handleConfirm = async () => {
+    const token = await getCookie("amalajeun_token");
+    if (token?.value) {
+      setIsChatOpen(true);
     } else {
       setIsAuthModalOpen(true);
     }
@@ -277,16 +255,6 @@ export default function AmalaMap() {
 
   const filteredSpots = useMemo(() => {
     return amalaSpots.filter((spot) => {
-      // Search query filter
-      //use google places api for search
-      // if (
-      //   query &&
-      //   !spot.name.toLowerCase().includes(query.toLowerCase()) &&
-      //   !spot.address.toLowerCase().includes(query.toLowerCase())
-      // ) {
-      //   return false;
-      // }
-
       // Verified filter
       if (onlyVerified && !spot.verified) {
         return false;
@@ -419,7 +387,7 @@ export default function AmalaMap() {
                           type="checkbox"
                           checked={onlyVerified}
                           onChange={(e) => setOnlyVerified(e.target.checked)}
-                          className="rounded w-full"
+                          className="rounded"
                         />
                         Verified spots only
                       </label>
@@ -512,7 +480,7 @@ export default function AmalaMap() {
 
           <MapContainer
             center={center}
-            zoom={11}
+            zoom={mapZoom}
             scrollWheelZoom
             className="h-full w-full leaflet-container"
           >
@@ -544,7 +512,26 @@ export default function AmalaMap() {
                       >
                         Cancel
                       </button>
-                      <button onClick={() => setIsChatOpen(true)}>
+                      <button
+                        onClick={() => {
+                          const isSpotCloseBy = amalaSpots.some((spot) => {
+                            const distance = GetDistance(
+                              [spot.latitude, spot.longitude],
+                              [candidate.lat, candidate.lng]
+                            );
+                            return distance < 50;
+                          });
+                          if (isSpotCloseBy) {
+                            toast.error(
+                              "An Amala spot already exists within 50 meters of this location. Please choose a different location."
+                            );
+                            setCandidate(null);
+                            return;
+                          } else {
+                            handleConfirm();
+                          }
+                        }}
+                      >
                         Confirm
                       </button>
                     </div>
@@ -631,8 +618,10 @@ export default function AmalaMap() {
                             <ReviewDialog
                               spot={spot}
                               setIsAuthModalOpen={setIsAuthModalOpen}
-                              open={isReviewOpen}
-                              setOpen={setIsReviewOpen}
+                              open={activeReviewSpotId === spot.id.toString()}
+                              setOpen={(isOpen) =>
+                                setActiveReviewSpotId(isOpen ? spot.id.toString() : null)
+                              }
                             />
                           </div>
                         </div>
@@ -644,16 +633,7 @@ export default function AmalaMap() {
             <LocateButton />
           </MapContainer>
 
-          <Dialog
-            open={isChatOpen}
-            onOpenChange={(open) => {
-              setIsChatOpen(open);
-              if (!open) {
-                // dialog just closed
-                if (window) window.location.reload();
-              }
-            }}
-          >
+          <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
             <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-4">
               <DialogHeader>
                 <DialogTitle>Describe the Amala Spot</DialogTitle>
@@ -675,6 +655,9 @@ export default function AmalaMap() {
                         lng={candidate.lng.toFixed(5)}
                         accessToken={accessToken}
                         user={user}
+                        onSpotAdded={(spot) =>
+                          setAmalaSpots((prev) => [...prev, spot])
+                        }
                       />
                     )}
                   </div>

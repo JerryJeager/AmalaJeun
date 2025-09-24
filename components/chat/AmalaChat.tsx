@@ -1,5 +1,5 @@
 "use client";
-import type { User } from "@/types/type";
+import type { AmalaSpotNew, User } from "@/types/type";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Send } from "lucide-react";
@@ -9,12 +9,15 @@ export default function AmalaChat({
   lng,
   user,
   accessToken,
+  onSpotAdded,
 }: {
   lat: string;
   lng: string;
   user: User;
   accessToken: string;
+  onSpotAdded: (spot: AmalaSpotNew) => void;
 }) {
+  const [spotAdded, setSpotAdded] = useState(false);
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
@@ -41,6 +44,29 @@ export default function AmalaChat({
 
     scrollToBottom();
   }, [messages, status]);
+
+  useEffect(() => {
+    if (spotAdded) return; // prevent looping
+
+    const last = messages[messages.length - 1];
+    if (!last) return;
+
+    last.parts.forEach((part) => {
+      if (
+        part.type === "tool-addAmalaSpot" &&
+        part.state === "output-available"
+      ) {
+        const output = part.output as {
+          success?: boolean;
+          spot?: AmalaSpotNew;
+        };
+        if (output.success && output.spot) {
+          onSpotAdded(output.spot);
+          setSpotAdded(true);
+        }
+      }
+    });
+  }, [messages, spotAdded, onSpotAdded]);
 
   return (
     <div className="w-full max-w-md rounded-2xl bg-white p-4 shadow-xl flex flex-col">
@@ -94,14 +120,14 @@ export default function AmalaChat({
                         return (
                           <div key={partIndex} className="font-medium">
                             {(part.output as { success?: any })?.success
-                              ? "Spot added successfully. Thank you for contributing. You can now close this chat and continue exploring, or come back later to add another spot."
+                              ? `Spot added successfully. Thank you for contributing. You can now close this chat and continue exploring, or come back later to add another spot.`
                               : "Sorry, something went wrong while adding the spot. Please try again later."}
                           </div>
                         );
                       case "output-error":
                         return (
                           <div key={partIndex} className="text-red-600">
-                            ❌ Error: {part.errorText}
+                            Error: {part.errorText}
                           </div>
                         );
                       default:
