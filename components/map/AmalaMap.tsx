@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import type { Map as LeafletMap } from "leaflet";
+import type { LatLngTuple, Map as LeafletMap } from "leaflet";
 
 import {
   Dialog,
@@ -56,8 +56,8 @@ import { useGooglePlaces } from "@/hooks/use-google-places";
 import { Loader2, Filter } from "lucide-react";
 import { ReviewDialog } from "./ReviewDialog";
 import { SpotsListSheet } from "./SpotList";
-import { GetDistance, isSpotOpenNow } from "@/lib/utils";
-import LocateButton from "./LocateButton";
+import { isSpotOpenNow } from "@/lib/utils";
+// import LocateButton from "./LocateButton";
 
 function MapController({
   center,
@@ -86,6 +86,28 @@ function statusColor(status: SpotStatus) {
     default:
       return "#6b7280"; // gray
   }
+} 
+
+function LocateButton() {
+  const map = useMap() as LeafletMap;
+  return (
+    <button
+      onClick={() => {
+        map.locate().on("locationfound", (e: any) => {
+          map.flyTo(e.latlng, 14, { duration: 0.75 });
+        });
+      }}
+      className="absolute bottom-5 right-5 z-[1000] rounded-2xl bg-white/90 px-3 py-2 text-sm font-semibold shadow-md hover:bg-white"
+    >
+      Locate me
+    </button>
+  );
+}
+
+function GetDistance(pos1: LatLngTuple, pos2: LatLngTuple): number{
+  const latLng1 = L.latLng(pos1[0], pos1[1]);
+  const latLng2 = L.latLng(pos2[0], pos2[1]);
+  return latLng1.distanceTo(latLng2);
 }
 
 function makeDivIcon(label: string, status: SpotStatus) {
