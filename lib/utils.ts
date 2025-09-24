@@ -1,7 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
-import { LatLngTuple } from "leaflet";
 import { twMerge } from "tailwind-merge"
-import L from "leaflet";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -26,11 +24,4 @@ export function isSpotOpenNow(openingTime: string, closingTime: string): boolean
   }
 
   return currentTime >= openTimeMinutes && currentTime <= closeTimeMinutes;
-}
-
-
-export function GetDistance(pos1: LatLngTuple, pos2: LatLngTuple): number{
-  const latLng1 = L.latLng(pos1[0], pos1[1]);
-  const latLng2 = L.latLng(pos2[0], pos2[1]);
-  return latLng1.distanceTo(latLng2);
 }
