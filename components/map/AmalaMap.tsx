@@ -57,6 +57,7 @@ import { Loader2, Filter } from "lucide-react";
 import { ReviewDialog } from "./ReviewDialog";
 import { SpotsListSheet } from "./SpotList";
 import { isSpotOpenNow } from "@/lib/utils";
+import { ImagesDialog } from "./SpotImageDialog";
 // import LocateButton from "./LocateButton";
 
 function MapController({
@@ -86,7 +87,7 @@ function statusColor(status: SpotStatus) {
     default:
       return "#6b7280"; // gray
   }
-} 
+}
 
 function LocateButton() {
   const map = useMap() as LeafletMap;
@@ -104,7 +105,7 @@ function LocateButton() {
   );
 }
 
-function GetDistance(pos1: LatLngTuple, pos2: LatLngTuple): number{
+function GetDistance(pos1: LatLngTuple, pos2: LatLngTuple): number {
   const latLng1 = L.latLng(pos1[0], pos1[1]);
   const latLng2 = L.latLng(pos2[0], pos2[1]);
   return latLng1.distanceTo(latLng2);
@@ -145,7 +146,9 @@ export default function AmalaMap() {
   const [activeReviewSpotId, setActiveReviewSpotId] = useState<string | null>(
     null
   );
-
+  const [activeImagesSpotId, setActiveImagesSpotId] = useState<string | null>(
+    null
+  );
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null);
@@ -642,7 +645,20 @@ export default function AmalaMap() {
                               setIsAuthModalOpen={setIsAuthModalOpen}
                               open={activeReviewSpotId === spot.id.toString()}
                               setOpen={(isOpen) =>
-                                setActiveReviewSpotId(isOpen ? spot.id.toString() : null)
+                                setActiveReviewSpotId(
+                                  isOpen ? spot.id.toString() : null
+                                )
+                              }
+                            />
+
+                            <ImagesDialog
+                              spot={spot}
+                              setIsAuthModalOpen={setIsAuthModalOpen}
+                              open={activeImagesSpotId === spot.id.toString()}
+                              setOpen={(isOpen) =>
+                                setActiveImagesSpotId(
+                                  isOpen ? spot.id.toString() : null
+                                )
                               }
                             />
                           </div>
