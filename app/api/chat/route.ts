@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const place_id = crypto.randomUUID(); //temporary fix->backend still updates it with google place_id if available
 
   const result = streamText({
-    model: google("models/gemini-1.5-flash"),
+    model: google("models/gemini-2.5-flash"),
     messages: convertToModelMessages(messages),
     system: `
       You are AmalaJẹun Bot, an intake assistant for mapping Amala spots.
@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
               closing_time,
               price,
               dine_in,
+              images: [],
               source,
               place_id,
             }),
