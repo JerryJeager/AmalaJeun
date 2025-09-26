@@ -127,7 +127,7 @@ export function SpotsListSheet({ spots, onSpotSelect }: SpotsListSheetProps) {
                 {filteredSpots.length} spot
                 {filteredSpots.length !== 1 ? "s" : ""} found
               </span>
-              <span>{spots.filter((s) => s.verified).length} verified</span>
+              <span>{spots.filter((s) => s.status == "verified").length} verified</span>
             </div>
           </div>
         )}
@@ -182,7 +182,7 @@ export function SpotsListSheet({ spots, onSpotSelect }: SpotsListSheetProps) {
                             {spot.name}
                           </CardTitle>
                           <div className="flex gap-1 ml-2">
-                            {spot.verified && (
+                            {spot.status == "verified" && (
                               <Badge variant="secondary" className="text-xs">
                                 <CheckCircle className="h-3 w-3 mr-1" />
                                 Verified

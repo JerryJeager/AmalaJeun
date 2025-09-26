@@ -281,7 +281,7 @@ export default function AmalaMap() {
   const filteredSpots = useMemo(() => {
     return amalaSpots.filter((spot) => {
       // Verified filter
-      if (onlyVerified && !spot.verified) {
+      if (onlyVerified && spot.status !== "verified") {
         return false;
       }
 
@@ -586,7 +586,7 @@ export default function AmalaMap() {
                       position={[spot.latitude, spot.longitude]}
                       icon={makeDivIcon(
                         spot.name,
-                        spot.verified ? "verified" : "pending"
+                        spot.status == "verified" ? "verified" : "pending"
                       )}
                     >
                       <Popup>
@@ -602,11 +602,11 @@ export default function AmalaMap() {
                               className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
                               style={{
                                 background: statusColor(
-                                  spot.verified ? "verified" : "pending"
+                                  spot.status == "verified" ? "verified" : "pending"
                                 ),
                               }}
                             >
-                              {spot.verified ? "Verified" : "Pending"}
+                              {spot.status == "verified" ? "Verified" : "Pending"}
                             </span>
                             <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px]">
                               ₦{displayPrice.toLocaleString()}
