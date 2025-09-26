@@ -4,17 +4,14 @@ import { DefaultChatTransport } from "ai";
 import { Send } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import type { AmalaSpotNew } from "@/types/type";
+import ReactMarkdown from "react-markdown";
 
-export default function AmalaSpotsChat({
-  spots,
-}: {
-  spots: AmalaSpotNew[];
-}) {
+export default function AmalaSpotsChat({ spots }: { spots: AmalaSpotNew[] }) {
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat/spots",
       body: {
-        spots, 
+        spots,
       },
     }),
   });
@@ -43,11 +40,9 @@ export default function AmalaSpotsChat({
         {messages.length === 0 && (
           <div className="flex justify-start">
             <div className="px-3 py-2 rounded-lg max-w-[75%] bg-gray-100 text-gray-800 rounded-bl-none">
-              👋 Hi! I’m your AmalaJẹun guide.  
-              You can ask me things like:  
-              • "Where’s the closest Amala spot?"  
-              • "Which spots open before 10am?"  
-              • "Show me spots with dine-in."
+              👋 Hi! I’m your AmalaJẹun guide. You can ask me things like: •
+              "Where’s the closest Amala spot?" • "Which spots open before
+              10am?" • "Show me spots with dine-in."
             </div>
           </div>
         )}
@@ -67,7 +62,14 @@ export default function AmalaSpotsChat({
             >
               {m.parts.map((part, partIndex) => {
                 if (part.type === "text") {
-                  return <span key={partIndex}>{part.text}</span>;
+                  return (
+                    <div
+                      key={partIndex}
+                      className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0"
+                    >
+                      <ReactMarkdown>{part.text}</ReactMarkdown>
+                    </div>
+                  );
                 }
                 return null;
               })}
