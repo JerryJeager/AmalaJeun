@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       Current server time: ${currentTime}
 
       Context:
-      - The current time is provided above. Use it when answering time-related questions like "Which spots are open now?" or "Which close after 9pm?".  
+      - The current time is provided above. Use it when answering time-related questions like "Which spots are open now?".  
       - You will be provided with a list of Amala spots in this format:
         { id, name, address, latitude, longitude, user_id, added_by, opening_time, closing_time, price, dine_in, source, status, verified, images, created_at, updated_at }.
       - Use this information to answer user questions about available spots, their names, locations, hours, prices, dine-in availability, and status.
