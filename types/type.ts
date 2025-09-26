@@ -31,6 +31,7 @@ export type AmalaSpotNew = {
   price: number
   dine_in: boolean 
   source: string
+  status: string
   verified: boolean 
   images: string[]
   created_at: string
