@@ -57,11 +57,10 @@ npm run dev
 ##  Features
 
 - **Crowdsourced Amala Spot Discovery:** Add, verify, and review Amala spots globally.
-- **AI Chatbot:** Ask questions about spots, get recommendations, and more.
+- **AI Chatbot:** Ask questions about spots, Add, get recommendations, and more.
 - **Map Search & Clustering:** Find spots by location, filter, and cluster view.
 - **Image Uploads:** Attach images to spots for better discovery.
 - **Community Verification:** Users can verify and review spots.
-- **Admin Tools:** Manage and moderate spots (admin only).
 
 ---
 
