@@ -248,7 +248,7 @@ export default function AmalaMap() {
         }
       }
     } catch {
-      toast.error("Failed to verify spot. Please try again.");
+      toast.error("It seems you have already verified this spot.");
     }
   };
 
